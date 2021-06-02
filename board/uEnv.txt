@@ -1,0 +1,9 @@
+ert3boot=setenv bootargs console=ttyPS0,${baudrate} log_buf_len=131072 rootwait panic=10 ${nosmp} ${vmopt} root=${rootdev} ${kuopt} ${runlevel} && ext4load mmc ${sddev}:2 0x02000000 /boot/${kfile} && bootm 0x02000000 ${initrdaddr} 0x02A00000
+ldert3env=if fatinfo mmc 0 && ext4load mmc 0:2 0x08000000 /boot/ert3Env && env import -t 0x08000000 ${filesize};then setenv sddev 0;elif fatinfo mmc 1 && ext4load mmc 1:2 0x08000000 /boot/ert3Env && env import -t 0x08000000 ${filesize};then setenv sddev 1;else setenv sddev x;fi;echo boot device is mmc ${sddev}
+chkmodel=mw.b 0x08000000 0xe0 1 && cmp.b 0x08000000 0xe000a064 1 && setenv ymodel 1r;mw.b 0x08000000 0xe1 1 && cmp.b 0x08000000 0xe000a064 1 && setenv ymodel 2l && setenv vmopt vmalloc=600MB
+chkdtfile=if test x${dtfile} != x;then ext4load mmc ${sddev}:2 0x02A00000 ${dtfile} && echo device tree file is ${dtfile};else ext4load mmc ${sddev}:2 0x02A00000 /boot/f3rp7x_${ymodel}.dtb && echo dts is /boot/f3rp7x_${ymodel}.dtb;fi
+chkinitrd=setenv initrdaddr -;if test x${ldinitrd} = xyes;then cp.w ${initrd_offset} 0x03000000 ${initrd_size_word} && setenv initrdaddr 0x03000000 && echo initrd from flash;fi;if test x${ldinitrd} = xfile -a x${initrdfile} != x;then ext4load mmc ${sddev}:2 0x03000000 /boot/${initrdfile} && setenv initrdaddr 0x03000000 && echo initrd from file;fi
+chkroot=if test x${rootdev} = x;then setenv rootdev /dev/mmcblk0p2;fi;if test ${sddev} = 1;then mmc dev 0 && mmc part && setenv rootdev /dev/mmcblk1p2;fi
+chkfautorun=setenv fautorun -;fatload mmc ${sddev}:1 0x08000000 autorun && env import -t 0x08000000 0 && setenv fautorun yes
+goboot=if test x${fautorun} = xyes;then run ert3boot;elif test x${autorun} = xyes;then run ert3boot;fi
+autoboot=run ldert3env;run chkmodel;run chkfautorun;sf probe 0 0 0;run chkdtfile;run chkinitrd;run chkroot;run goboot

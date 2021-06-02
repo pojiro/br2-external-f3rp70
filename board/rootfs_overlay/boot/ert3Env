@@ -1,0 +1,13 @@
+# kernel image filename
+kfile=uImage
+# root device name
+#rootdev=/dev/mmcblk0p2
+# device tree image filename
+#dtfile=/boot/f3rp7x.dtb
+# load initrd image from flash or file, yes or no or file
+#   yes : from flash
+#  file : from file , filename is in initrdfile.
+ldinitrd=no
+#initrdfile=initrd.img
+# auto boot flag, yes or no
+autorun=yes
